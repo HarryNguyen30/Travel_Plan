@@ -27,6 +27,30 @@ export async function getTravelPlans(): Promise<TravelPlan[]> {
   return data ?? [];
 }
 
+export async function getTravelPlan(id: string): Promise<TravelPlan | null> {
+  const supabase = await createServerSupabaseClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("travel_plans")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data;
+}
+
 export async function createTravelPlan(
   input: CreateTravelPlanInput
 ): Promise<{ success: true } | { success: false; error: string }> {
