@@ -1,11 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/utils/supabase/server";
 import type { CreateTravelPlanInput, TravelPlan } from "@/types/travel-plan";
 
 export async function getTravelPlans(): Promise<TravelPlan[]> {
-  const supabase = await createClient();
+  const supabase = await createServerSupabaseClient();
 
   const {
     data: { user },
@@ -50,7 +50,7 @@ export async function createTravelPlan(
     return { success: false, error: "Ngày kết thúc phải sau ngày bắt đầu." };
   }
 
-  const supabase = await createClient();
+  const supabase = await createServerSupabaseClient();
 
   const {
     data: { user },
@@ -80,7 +80,7 @@ export async function createTravelPlan(
 export async function deleteTravelPlan(
   id: string
 ): Promise<{ success: true } | { success: false; error: string }> {
-  const supabase = await createClient();
+  const supabase = await createServerSupabaseClient();
 
   const {
     data: { user },

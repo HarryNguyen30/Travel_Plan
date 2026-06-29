@@ -1,15 +1,40 @@
 "use server";
 
+import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/utils/supabase/server";
 
 export type AuthState = {
   error: string;
   success: string;
+  redirectTo?: string;
 };
 
 const initialAuthState: AuthState = { error: "", success: "" };
+
+async function getSiteUrl() {
+  const headersList = await headers();
+  const host =
+    headersList.get("x-forwarded-host") ?? headersList.get("host") ?? "localhost:3000";
+  const protocol = headersList.get("x-forwarded-proto") ?? "http";
+
+  return `${protocol}://${host}`;
+}
+
+async function getSupabaseClient(): Promise<
+  { client: Awaited<ReturnType<typeof createServerSupabaseClient>> } | { error: string }
+> {
+  try {
+    const client = await createServerSupabaseClient();
+    return { client };
+  } catch {
+    return {
+      error:
+        "Supabase chưa được cấu hình. Thêm NEXT_PUBLIC_SUPABASE_URL và NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY trên Vercel.",
+    };
+  }
+}
 
 export async function signUp(
   _prev: AuthState,
@@ -31,9 +56,19 @@ export async function signUp(
     return { ...initialAuthState, error: "Mật khẩu xác nhận không khớp." };
   }
 
-  const supabase = await createClient();
+  const supabaseResult = await getSupabaseClient();
+  if ("error" in supabaseResult) {
+    return { ...initialAuthState, error: supabaseResult.error };
+  }
 
-  const { data, error } = await supabase.auth.signUp({ email, password });
+  const siteUrl = await getSiteUrl();
+  const { data, error } = await supabaseResult.client.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: `${siteUrl}/auth/callback`,
+    },
+  });
 
   if (error) {
     return { ...initialAuthState, error: error.message };
@@ -41,7 +76,7 @@ export async function signUp(
 
   if (data.session) {
     revalidatePath("/");
-    redirect("/");
+    return { ...initialAuthState, redirectTo: "/" };
   }
 
   return {
@@ -62,21 +97,30 @@ export async function signIn(
     return { ...initialAuthState, error: "Vui lòng nhập email và mật khẩu." };
   }
 
-  const supabase = await createClient();
+  const supabaseResult = await getSupabaseClient();
+  if ("error" in supabaseResult) {
+    return { ...initialAuthState, error: supabaseResult.error };
+  }
 
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { error } = await supabaseResult.client.auth.signInWithPassword({
+    email,
+    password,
+  });
 
   if (error) {
     return { ...initialAuthState, error: "Email hoặc mật khẩu không đúng." };
   }
 
   revalidatePath("/");
-  redirect("/");
+  return { ...initialAuthState, redirectTo: "/" };
 }
 
 export async function signOut() {
-  const supabase = await createClient();
-  await supabase.auth.signOut();
+  const supabaseResult = await getSupabaseClient();
+  if ("client" in supabaseResult) {
+    await supabaseResult.client.auth.signOut();
+  }
+
   revalidatePath("/");
   redirect("/login");
 }

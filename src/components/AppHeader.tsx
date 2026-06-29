@@ -1,8 +1,8 @@
 import { signOut } from "@/app/actions/auth";
-import { createClient } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/utils/supabase/server";
 
 export async function AppHeader() {
-  const supabase = await createClient();
+  const supabase = await createServerSupabaseClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

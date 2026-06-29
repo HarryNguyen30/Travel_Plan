@@ -3,6 +3,7 @@ import { CreatePlanForm } from "@/components/CreatePlanForm";
 import { TravelPlanList } from "@/components/TravelPlanList";
 import { getTravelPlans } from "@/app/actions/travel-plans";
 import type { TravelPlan } from "@/types/travel-plan";
+import { hasSupabaseEnv } from "@/utils/supabase/env";
 
 function SetupNotice() {
   return (
@@ -11,7 +12,7 @@ function SetupNotice() {
       <p className="mt-2 text-sm leading-relaxed">
         Sao chép <code className="rounded bg-amber-100 px-1">.env.example</code> thành{" "}
         <code className="rounded bg-amber-100 px-1">.env.local</code>, điền URL và
-        Anon Key từ Supabase Dashboard, rồi chạy migration SQL trong{" "}
+        Anon/Publishable Key từ Supabase Dashboard, rồi chạy SQL trong{" "}
         <code className="rounded bg-amber-100 px-1">supabase/migrations/</code>.
       </p>
     </div>
@@ -19,9 +20,7 @@ function SetupNotice() {
 }
 
 export default async function HomePage() {
-  const hasSupabase =
-    Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
-    Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  const hasSupabase = hasSupabaseEnv();
 
   let plans: TravelPlan[] = [];
 

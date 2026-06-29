@@ -8,11 +8,13 @@ import {
   AuthField,
   AuthMessage,
 } from "@/components/auth/AuthLayout";
+import { useAuthRedirect } from "@/components/auth/useAuthRedirect";
 
 const initialState = { error: "", success: "" };
 
 export function LoginForm() {
   const [state, formAction, isPending] = useActionState(signIn, initialState);
+  useAuthRedirect(state);
 
   return (
     <AuthCard
