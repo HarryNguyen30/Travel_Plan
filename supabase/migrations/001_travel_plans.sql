@@ -2,6 +2,7 @@
 
 create table if not exists public.travel_plans (
   id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
   title text not null,
   destination text not null,
   start_date date not null,
@@ -15,19 +16,22 @@ create table if not exists public.travel_plans (
 create index if not exists travel_plans_created_at_idx
   on public.travel_plans (created_at desc);
 
+create index if not exists travel_plans_user_id_idx
+  on public.travel_plans (user_id);
+
 alter table public.travel_plans enable row level security;
 
-create policy "Allow public read access"
+create policy "Users can view own plans"
   on public.travel_plans
   for select
-  using (true);
+  using (auth.uid() = user_id);
 
-create policy "Allow public insert access"
+create policy "Users can insert own plans"
   on public.travel_plans
   for insert
-  with check (true);
+  with check (auth.uid() = user_id);
 
-create policy "Allow public delete access"
+create policy "Users can delete own plans"
   on public.travel_plans
   for delete
-  using (true);
+  using (auth.uid() = user_id);
