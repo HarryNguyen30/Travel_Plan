@@ -1,3 +1,4 @@
+import { AppHeader } from "@/components/AppHeader";
 import { CreatePlanForm } from "@/components/CreatePlanForm";
 import { TravelPlanList } from "@/components/TravelPlanList";
 import { getTravelPlans } from "@/app/actions/travel-plans";
@@ -11,7 +12,7 @@ function SetupNotice() {
         Sao chép <code className="rounded bg-amber-100 px-1">.env.example</code> thành{" "}
         <code className="rounded bg-amber-100 px-1">.env.local</code>, điền URL và
         Anon Key từ Supabase Dashboard, rồi chạy migration SQL trong{" "}
-        <code className="rounded bg-amber-100 px-1">supabase/migrations/001_travel_plans.sql</code>.
+        <code className="rounded bg-amber-100 px-1">supabase/migrations/</code>.
       </p>
     </div>
   );
@@ -35,7 +36,7 @@ export default async function HomePage() {
   return (
     <main className="min-h-screen bg-gradient-to-b from-sky-50/80 to-background">
       <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
-        <header className="mb-10">
+        <header className="mb-6">
           <p className="text-sm font-medium uppercase tracking-wider text-primary">
             Travel Plan
           </p>
@@ -51,15 +52,18 @@ export default async function HomePage() {
         {!hasSupabase ? (
           <SetupNotice />
         ) : (
-          <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
-            <CreatePlanForm />
-            <section>
-              <h2 className="mb-4 text-lg font-semibold">
-                Kế hoạch của bạn ({plans.length})
-              </h2>
-              <TravelPlanList plans={plans} />
-            </section>
-          </div>
+          <>
+            <AppHeader />
+            <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+              <CreatePlanForm />
+              <section>
+                <h2 className="mb-4 text-lg font-semibold">
+                  Kế hoạch của bạn ({plans.length})
+                </h2>
+                <TravelPlanList plans={plans} />
+              </section>
+            </div>
+          </>
         )}
       </div>
     </main>

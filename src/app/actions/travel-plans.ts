@@ -1,11 +1,19 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createSupabaseClient } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/server";
 import type { CreateTravelPlanInput, TravelPlan } from "@/types/travel-plan";
 
 export async function getTravelPlans(): Promise<TravelPlan[]> {
-  const supabase = createSupabaseClient();
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return [];
+  }
 
   const { data, error } = await supabase
     .from("travel_plans")
@@ -42,9 +50,18 @@ export async function createTravelPlan(
     return { success: false, error: "Ngày kết thúc phải sau ngày bắt đầu." };
   }
 
-  const supabase = createSupabaseClient();
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: "Bạn cần đăng nhập để tạo kế hoạch." };
+  }
 
   const { error } = await supabase.from("travel_plans").insert({
+    user_id: user.id,
     title,
     destination,
     start_date: input.start_date,
@@ -63,7 +80,15 @@ export async function createTravelPlan(
 export async function deleteTravelPlan(
   id: string
 ): Promise<{ success: true } | { success: false; error: string }> {
-  const supabase = createSupabaseClient();
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: "Bạn cần đăng nhập để xóa kế hoạch." };
+  }
 
   const { error } = await supabase.from("travel_plans").delete().eq("id", id);
 

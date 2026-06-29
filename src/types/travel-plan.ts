@@ -1,5 +1,6 @@
 export type TravelPlan = {
   id: string;
+  user_id: string;
   title: string;
   destination: string;
   start_date: string;
